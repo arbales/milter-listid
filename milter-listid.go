@@ -88,7 +88,7 @@ func main() {
 		"Protocol family (unix or tcp)")
 	flag.StringVar(&address,
 		"addr",
-		"./milter-replyto.sock",
+		"./milter-listid.sock",
 		"Bind to address or unix domain socket")
 	flag.Parse()
 
