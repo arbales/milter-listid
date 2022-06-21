@@ -1,5 +1,5 @@
 [Unit]
-Description=A milter service to add reply-to header
+Description=A milter service to add mialing list headers
 After=network.target nss-lookup.target syslog.target
 
 [Service]

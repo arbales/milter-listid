@@ -7,17 +7,16 @@ import (
 	"net"
 	"net/textproto"
 	"os"
-	"regexp"
-
+	"strings"
+	"fmt"
 	"github.com/andybalholm/milter"
 )
-
-var fromRegex = regexp.MustCompile("@([^@]+\\.lan|livid\\.pp\\.ru)$")
 
 /* replyMilter object */
 type replyMilter struct {
 	milter.Milter
-	hasReplyToHeader *bool
+	listId string
+	listUnsub string
 }
 
 // Connect is called when a new SMTP connection is received. The values for
@@ -41,28 +40,28 @@ func (b replyMilter) To(recipient string, macros map[string]string) milter.Respo
 // From is called when the client sends its MAIL FROM message. The sender's
 // address is passed without <> brackets.
 func (b replyMilter) From(from string, macros map[string]string) milter.Response {
-	if !fromRegex.MatchString(from) {
-		log.Println("From ", from, " SKIP")
-		return milter.Accept
-	}
-	log.Println("From ", from, " OK")
 	return milter.Continue
 }
 
 // Headers is called when the message headers have been received.
 func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
-	var rt = headers.Get("Reply-To")
-	*b.hasReplyToHeader = (rt != "")
-	log.Println("Reply-To header: ", *b.hasReplyToHeader, rt)
+	toAddress := headers.Get("To");
+	toAddress = toAddress[1 : len(toAddress) - 1]
+	toParts := strings.Split(toAddress, "@")
+	if len(toParts) > 1  && toParts[1] == "lists.giraffic.world" {
+		b.listId = toAddress
+		b.listUnsub = "https://giraffic.world/lists"
+  }
+
 	return milter.Continue
 }
 
 // Body is called when the message body has been received. It gives an
 // opportunity for the milter to modify the message before it is delivered.
 func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
-	if !*b.hasReplyToHeader {
-		log.Println("Added Reply-To header")
-		m.AddHeader("Reply-To", "root@livid.pp.ru")
+	if len(b.listId) > 0 {
+		m.AddHeader("List-Unsubscribe", fmt.Sprintf("<%s>",b.listUnsub))
+		m.AddHeader("List-ID", fmt.Sprintf("<%s>",b.listId))
 	}
 	return milter.Accept
 }
@@ -71,7 +70,7 @@ func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
 func runServer(socket net.Listener) {
 	// declare milter init function
 	init := func() milter.Milter {
-		return replyMilter{hasReplyToHeader: new(bool)}
+		return replyMilter{};
 	}
 	// start server
 	if err := milter.Serve(socket, init); err != nil {
@@ -89,7 +88,7 @@ func main() {
 		"Protocol family (unix or tcp)")
 	flag.StringVar(&address,
 		"addr",
-		"/var/run/milter-replyto/milter-replyto.sock",
+		"./milter-replyto.sock",
 		"Bind to address or unix domain socket")
 	flag.Parse()
 
