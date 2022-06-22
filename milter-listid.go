@@ -50,7 +50,7 @@ func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	log.Printf("to: %s", toAddress)
 	toParts := strings.Split(toAddress, "@")
 	if len(toParts) > 1  && toParts[1] == "lists.giraffes.camp" {
-		log.Print("Adding Headers")
+		log.Print("Should add deaders")
 		b.listId = toAddress
 		b.listUnsub = "https://giraffic.world/lists"
   }
@@ -61,10 +61,12 @@ func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 // Body is called when the message body has been received. It gives an
 // opportunity for the milter to modify the message before it is delivered.
 func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
+	log.Printf("b.listId: %s", b.listId)
 	if len(b.listId) > 0 {
+		log.Print("Adding headers")
 		m.AddHeader("List-Unsubscribe", fmt.Sprintf("<%s>",b.listUnsub))
 		m.AddHeader("List-ID", fmt.Sprintf("<%s>",b.listId))
-		log.Print("Added headers!")
+		log.Print("Added headers")
 	}
 	return milter.Accept
 }
