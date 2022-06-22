@@ -72,14 +72,17 @@ func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
 		m.AddHeader("List-ID", fmt.Sprintf("<%s>",b.listId))
 		log.Print("Added headers")
 	}
-	return milter.Accept
+	return milter.Continue
 }
 
 /* NewObject creates new BogoMilter instance */
 func runServer(socket net.Listener) {
 	// declare milter init function
 	init := func() milter.Milter {
-		return replyMilter{};
+		m := replyMilter{};
+		m.listId = ""
+		m.listUnsub = ""
+		return m
 	}
 	// start server
 	if err := milter.Serve(socket, init); err != nil {
