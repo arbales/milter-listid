@@ -3,11 +3,11 @@ Description=A milter service to add mialing list headers
 After=network.target nss-lookup.target syslog.target
 
 [Service]
-ExecStart=/usr/local/bin/milter-listid
-RuntimeDirectory=milter-listid
-RuntimeDirectoryMode=0750
+ExecStart=/usr/local/bin/milter-listid --addr 127.0.0.1:10044 --proto tcp
 User=milter
 Group=milter
+RuntimeDirectory=milter-listid
+RuntimeDirectoryMode=0750
 KillMode=process
 Restart=on-failure
 

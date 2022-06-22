@@ -46,9 +46,11 @@ func (b replyMilter) From(from string, macros map[string]string) milter.Response
 // Headers is called when the message headers have been received.
 func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	toAddress := headers.Get("To");
-	toAddress = toAddress[1 : len(toAddress) - 1]
+	// toAddress = toAddress[1 : len(toAddress) - 1]
+	log.Printf("to: %s", toAddress)
 	toParts := strings.Split(toAddress, "@")
-	if len(toParts) > 1  && toParts[1] == "lists.giraffic.world" {
+	if len(toParts) > 1  && toParts[1] == "lists.giraffes.camp" {
+		log.Print("Adding Headers")
 		b.listId = toAddress
 		b.listUnsub = "https://giraffic.world/lists"
   }
@@ -62,6 +64,7 @@ func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
 	if len(b.listId) > 0 {
 		m.AddHeader("List-Unsubscribe", fmt.Sprintf("<%s>",b.listUnsub))
 		m.AddHeader("List-ID", fmt.Sprintf("<%s>",b.listId))
+		log.Print("Added headers!")
 	}
 	return milter.Accept
 }
