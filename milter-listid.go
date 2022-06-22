@@ -50,10 +50,14 @@ func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	log.Printf("to: %s", toAddress)
 	toParts := strings.Split(toAddress, "@")
 	if len(toParts) > 1  && toParts[1] == "lists.giraffes.camp" {
-		log.Print("Should add deaders")
+		log.Print("Should add headers!")
 		b.listId = toAddress
 		b.listUnsub = "https://giraffic.world/lists"
-  }
+  } else {
+		log.Print("Not adding headers.")
+		b.listId = ""
+		b.listUnsub = ""
+	}
 
 	return milter.Continue
 }
