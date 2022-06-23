@@ -21,30 +21,30 @@ type replyMilter struct {
 
 // Connect is called when a new SMTP connection is received. The values for
 // network and address are in the same format that would be passed to net.Dial.
-func (b replyMilter) Connect(hostname string, network string, address string, macros map[string]string) milter.Response {
+func (b *replyMilter) Connect(hostname string, network string, address string, macros map[string]string) milter.Response {
 	return milter.Continue
 }
 
 // Helo is called when the client sends its HELO or EHLO message.
-func (b replyMilter) Helo(name string, macros map[string]string) milter.Response {
+func (b *replyMilter) Helo(name string, macros map[string]string) milter.Response {
 	return milter.Continue
 }
 
 // To is called when the client sends a RCPT TO message. The recipient's
 // address is passed without <> brackets. If it returns a rejection milter.Response,
 // only the one recipient is rejected.
-func (b replyMilter) To(recipient string, macros map[string]string) milter.Response {
+func (b *replyMilter) To(recipient string, macros map[string]string) milter.Response {
 	return milter.Continue
 }
 
 // From is called when the client sends its MAIL FROM message. The sender's
 // address is passed without <> brackets.
-func (b replyMilter) From(from string, macros map[string]string) milter.Response {
+func (b *replyMilter) From(from string, macros map[string]string) milter.Response {
 	return milter.Continue
 }
 
 // Headers is called when the message headers have been received.
-func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
+func (b *replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	toAddress := headers.Get("To");
 	// toAddress = toAddress[1 : len(toAddress) - 1]
 	log.Printf("to: %s", toAddress)
@@ -64,7 +64,7 @@ func (b replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 
 // Body is called when the message body has been received. It gives an
 // opportunity for the milter to modify the message before it is delivered.
-func (b replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
+func (b *replyMilter) Body(body []byte, m milter.Modifier) milter.Response {
 	log.Printf("b.listId: %s", b.listId)
 	if len(b.listId) > 0 {
 		log.Print("Adding headers")
@@ -82,7 +82,7 @@ func runServer(socket net.Listener) {
 		m := replyMilter{};
 		m.listId = ""
 		m.listUnsub = ""
-		return m
+		return &m;
 	}
 	// start server
 	if err := milter.Serve(socket, init); err != nil {
