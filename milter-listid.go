@@ -10,6 +10,7 @@ import (
 	"strings"
 	"fmt"
 	"github.com/andybalholm/milter"
+	"golang.org/x/exp/slices"
 )
 
 /* replyMilter object */
@@ -49,9 +50,28 @@ func (b *replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	// toAddress = toAddress[1 : len(toAddress) - 1]
 	log.Printf("to: %s", toAddress)
 	toParts := strings.Split(toAddress, "@")
-	if len(toParts) > 1  && toParts[1] == "lists.giraffes.camp" {
+
+	// If we know the address is a list, it is a list.
+	lists := []string{
+		"utilities@giraffic.world",
+		"houseboats-21@giraffic.world",
+		"houseboats-22@giraffic.world",
+		"22-leads@giraffic.world",
+		"membership@giraffic.world",
+		"2018@giraffic.world",
+		"2021@giraffic.world",
+		"test-email-list@giraffic.world"
+	}
+	doesMatch := slices.Contains(lists, toAddress)
+
+	// If the list is from a List Domain it is also a list.
+	listDomains := []string{"lists.giraffes.camp", "lists.giraffic.world"}
+	domainDoesMatch := (len(toParts) > 1) && (slices.Contains(listDomains, toParts[1]))
+	listAddress := len(toParts) > 1 ? toParts[1] : fmt.Sprintf("%s@lists.giraffic.world", toParts[1])
+
+	if doesMatch || domainDoesMatch {
 		log.Print("Should add headers!")
-		b.listId = toAddress
+		b.listId = listAddress
 		b.listUnsub = "https://giraffic.world/lists"
   } else {
 		log.Print("Not adding headers.")
