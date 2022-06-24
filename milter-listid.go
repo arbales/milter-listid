@@ -60,14 +60,19 @@ func (b *replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 		"membership@giraffic.world",
 		"2018@giraffic.world",
 		"2021@giraffic.world",
-		"test-email-list@giraffic.world"
+		"test-email-list@giraffic.world",
 	}
 	doesMatch := slices.Contains(lists, toAddress)
 
 	// If the list is from a List Domain it is also a list.
 	listDomains := []string{"lists.giraffes.camp", "lists.giraffic.world"}
+	listAddress := ""
+
+	if len(toParts) > 1 {
+		listAddress = fmt.Sprintf("%s@lists.giraffic.world", toParts[1])
+	}
+	
 	domainDoesMatch := (len(toParts) > 1) && (slices.Contains(listDomains, toParts[1]))
-	listAddress := len(toParts) > 1 ? toParts[1] : fmt.Sprintf("%s@lists.giraffic.world", toParts[1])
 
 	if doesMatch || domainDoesMatch {
 		log.Print("Should add headers!")
