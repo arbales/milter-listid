@@ -69,9 +69,9 @@ func (b *replyMilter) Headers(headers textproto.MIMEHeader) milter.Response {
 	listAddress := ""
 
 	if len(toParts) > 1 {
-		listAddress = fmt.Sprintf("%s@lists.giraffic.world", toParts[1])
+		listAddress = fmt.Sprintf("%s@lists.giraffic.world", toParts[0])
 	}
-	
+
 	domainDoesMatch := (len(toParts) > 1) && (slices.Contains(listDomains, toParts[1]))
 
 	if doesMatch || domainDoesMatch {
